@@ -5,8 +5,7 @@ import { ProductForm } from '@/components/admin/ProductForm'
 import { PackForm } from '@/components/admin/PackForm'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { formatCurrency } from '@/lib/utils'
-import { slugify } from '@/lib/utils'
+import { formatCurrency, slugify } from '@/lib/utils'
 
 // ---- Server Actions ----
 

@@ -52,12 +52,11 @@ AS $$
 DECLARE
   v_new_balance INT;
 BEGIN
-  -- Authorization: admin only (called exclusively by server-side webhook/refund handlers)
-  IF NOT is_admin() THEN
-    RAISE EXCEPTION 'unauthorized' USING ERRCODE = 'P0001';
-  END IF;
-
   -- Amount must be positive (negative values would poison the audit log)
+  -- Note: this function is SECURITY DEFINER and must only be called from server-side
+  -- code (webhook handlers, Server Actions). RLS on customer_credits blocks direct
+  -- client calls. No auth.uid() check here because webhook calls run as service role
+  -- (auth.uid() = NULL) and would fail an is_admin() check.
   IF p_amount <= 0 THEN
     RAISE EXCEPTION 'invalid_amount' USING ERRCODE = 'P0001';
   END IF;

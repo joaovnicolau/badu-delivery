@@ -44,7 +44,7 @@ export default function CadastroPage() {
       return
     }
 
-    router.push('/minha-conta')
+    router.push('/')
     router.refresh()
   }
 

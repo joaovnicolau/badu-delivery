@@ -25,16 +25,20 @@ export async function createClient() {
 }
 
 export async function requireAdmin(): Promise<void> {
+  const { redirect } = await import('next/navigation')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('unauthorized')
+  if (!user) {
+    redirect('/login')
+    return
+  }
   const { data: profile } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', user.id)
     .single()
   if ((profile as { role?: string } | null)?.role !== 'admin') {
-    throw new Error('forbidden')
+    redirect('/')
   }
 }
 
