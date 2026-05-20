@@ -52,8 +52,8 @@ AS $$
 DECLARE
   v_new_balance INT;
 BEGIN
-  -- Authorization: only the customer themselves or an admin
-  IF auth.uid() != p_customer_id AND NOT is_admin() THEN
+  -- Authorization: admin only (called exclusively by server-side webhook/refund handlers)
+  IF NOT is_admin() THEN
     RAISE EXCEPTION 'unauthorized' USING ERRCODE = 'P0001';
   END IF;
 
