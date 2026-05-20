@@ -60,6 +60,7 @@ export default async function HomePage() {
           quantity: p.credits,
           price: p.price,
           unit: 'créditos',
+          packType: 'fresh' as const,
         }))}
       />
 
@@ -73,6 +74,7 @@ export default async function HomePage() {
           quantity: p.quantity,
           price: p.price,
           unit: 'marmitas',
+          packType: 'frozen' as const,
         }))}
       />
     </div>

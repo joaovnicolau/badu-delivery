@@ -7,6 +7,7 @@ type Pack = {
   quantity: number
   price: number
   unit: string
+  packType: 'fresh' | 'frozen'
 }
 
 export function PackSection({
@@ -27,7 +28,7 @@ export function PackSection({
         <p className="text-sm text-gray-500">{description}</p>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {packs.map((pack) => (
+        {packs.map(pack => (
           <PackCard key={pack.id} pack={pack} />
         ))}
       </div>

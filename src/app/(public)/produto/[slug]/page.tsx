@@ -57,13 +57,15 @@ export default async function ProductPage({
           {product.description && (
             <p className="text-gray-600 mt-3">{product.description}</p>
           )}
-          <div className="flex items-center justify-between mt-6">
-            <div>
-              <p className="text-sm text-gray-500">Preço por unidade</p>
-              <p className="text-2xl font-bold text-orange-600">{formatCurrency(product.price)}</p>
-            </div>
-            <Link href="/login?redirect=/checkout">
-              <Button size="lg">Pedir agora</Button>
+          <div className="mt-6 space-y-3">
+            <p className="text-sm text-gray-500">Preço por unidade: <span className="font-bold text-orange-600">{formatCurrency(product.price)}</span></p>
+            <Link href={`/checkout?tipo=credito&produtoId=${product.id}`} className="block">
+              <Button size="lg" className="w-full">Usar 1 crédito</Button>
+            </Link>
+            <Link href={`/checkout?tipo=single&produtoId=${product.id}`} className="block">
+              <Button size="lg" variant="outline" className="w-full">
+                Pagar {formatCurrency(product.price)} com Pix
+              </Button>
             </Link>
           </div>
         </div>
