@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createClient, requireAdmin } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { CategoryForm } from '@/components/admin/CategoryForm'
 import { ProductForm } from '@/components/admin/ProductForm'
@@ -12,6 +12,7 @@ import { slugify } from '@/lib/utils'
 
 async function createCategory(formData: FormData) {
   'use server'
+  await requireAdmin()
   const supabase = await createClient()
   await supabase.from('categories').insert({
     name: formData.get('name') as string,
@@ -24,6 +25,7 @@ async function createCategory(formData: FormData) {
 
 async function toggleCategoryActive(formData: FormData) {
   'use server'
+  await requireAdmin()
   const supabase = await createClient()
   const active = formData.get('active') === 'true'
   await supabase
@@ -36,6 +38,7 @@ async function toggleCategoryActive(formData: FormData) {
 
 async function deleteCategory(formData: FormData) {
   'use server'
+  await requireAdmin()
   const supabase = await createClient()
   await supabase.from('categories').delete().eq('id', formData.get('id') as string)
   revalidatePath('/admin/cardapio')
@@ -44,6 +47,7 @@ async function deleteCategory(formData: FormData) {
 
 async function createProduct(formData: FormData) {
   'use server'
+  await requireAdmin()
   const supabase = await createClient()
   const name = formData.get('name') as string
   await supabase.from('products').insert({
@@ -61,6 +65,7 @@ async function createProduct(formData: FormData) {
 
 async function toggleProductActive(formData: FormData) {
   'use server'
+  await requireAdmin()
   const supabase = await createClient()
   const active = formData.get('active') === 'true'
   await supabase
@@ -73,6 +78,7 @@ async function toggleProductActive(formData: FormData) {
 
 async function createFreshPack(formData: FormData) {
   'use server'
+  await requireAdmin()
   const supabase = await createClient()
   await supabase.from('fresh_credit_packs').insert({
     name: formData.get('name') as string,
@@ -87,6 +93,7 @@ async function createFreshPack(formData: FormData) {
 
 async function createFrozenPack(formData: FormData) {
   'use server'
+  await requireAdmin()
   const supabase = await createClient()
   await supabase.from('frozen_packs').insert({
     name: formData.get('name') as string,

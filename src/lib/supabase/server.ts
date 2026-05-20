@@ -24,6 +24,20 @@ export async function createClient() {
   )
 }
 
+export async function requireAdmin(): Promise<void> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('unauthorized')
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .single()
+  if ((profile as { role?: string } | null)?.role !== 'admin') {
+    throw new Error('forbidden')
+  }
+}
+
 export async function createServiceClient() {
   const cookieStore = await cookies()
   return createServerClient<Database>(
