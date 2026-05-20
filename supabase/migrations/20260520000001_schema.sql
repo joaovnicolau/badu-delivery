@@ -165,7 +165,7 @@ BEGIN
   VALUES (
     NEW.id,
     COALESCE(NEW.raw_user_meta_data->>'name', ''),
-    COALESCE(NEW.raw_user_meta_data->>'phone', '')
+    NULLIF(NEW.raw_user_meta_data->>'phone', '')
   );
   RETURN NEW;
 END;
@@ -189,3 +189,15 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 CREATE TRIGGER on_profile_created
   AFTER INSERT ON profiles
   FOR EACH ROW EXECUTE FUNCTION handle_new_profile();
+
+-- Performance indexes
+CREATE INDEX ON credit_transactions(customer_id);
+CREATE INDEX ON credit_transactions(created_at);
+CREATE INDEX ON orders(customer_id);
+CREATE INDEX ON orders(status);
+CREATE INDEX ON orders(created_at);
+CREATE INDEX ON order_items(order_id);
+CREATE INDEX ON reminders(customer_id);
+CREATE INDEX ON reminders(remind_at);
+CREATE INDEX ON payments(customer_id);
+CREATE INDEX ON payments(order_id);
