@@ -9,15 +9,18 @@ import { formatCurrency, slugify } from '@/lib/utils'
 
 // ---- Server Actions ----
 
-async function createCategory(formData: FormData) {
+type ActionResult = { error: string } | undefined
+
+async function createCategory(formData: FormData): Promise<ActionResult> {
   'use server'
   await requireAdmin()
   const supabase = await createClient()
-  await supabase.from('categories').insert({
+  const { error } = await supabase.from('categories').insert({
     name: formData.get('name') as string,
     position: Number(formData.get('position') ?? 0),
     active: formData.get('active') === 'on',
   } as never)
+  if (error) return { error: 'Erro ao criar categoria. Tente novamente.' }
   revalidatePath('/admin/cardapio')
   revalidatePath('/')
 }
@@ -44,12 +47,12 @@ async function deleteCategory(formData: FormData) {
   revalidatePath('/')
 }
 
-async function createProduct(formData: FormData) {
+async function createProduct(formData: FormData): Promise<ActionResult> {
   'use server'
   await requireAdmin()
   const supabase = await createClient()
   const name = formData.get('name') as string
-  await supabase.from('products').insert({
+  const { error } = await supabase.from('products').insert({
     name,
     slug: slugify(name) + '-' + Date.now().toString(36),
     description: (formData.get('description') as string) || null,
@@ -58,6 +61,7 @@ async function createProduct(formData: FormData) {
     type: formData.get('type') as string,
     active: formData.get('active') === 'on',
   } as never)
+  if (error) return { error: 'Erro ao criar marmita. Tente novamente.' }
   revalidatePath('/admin/cardapio')
   revalidatePath('/')
 }
@@ -75,32 +79,34 @@ async function toggleProductActive(formData: FormData) {
   revalidatePath('/')
 }
 
-async function createFreshPack(formData: FormData) {
+async function createFreshPack(formData: FormData): Promise<ActionResult> {
   'use server'
   await requireAdmin()
   const supabase = await createClient()
-  await supabase.from('fresh_credit_packs').insert({
+  const { error } = await supabase.from('fresh_credit_packs').insert({
     name: formData.get('name') as string,
     description: (formData.get('description') as string) || null,
     credits: Number(formData.get('quantity')),
     price: Number(formData.get('price')),
     active: formData.get('active') === 'on',
   } as never)
+  if (error) return { error: 'Erro ao criar pacote. Tente novamente.' }
   revalidatePath('/admin/cardapio')
   revalidatePath('/')
 }
 
-async function createFrozenPack(formData: FormData) {
+async function createFrozenPack(formData: FormData): Promise<ActionResult> {
   'use server'
   await requireAdmin()
   const supabase = await createClient()
-  await supabase.from('frozen_packs').insert({
+  const { error } = await supabase.from('frozen_packs').insert({
     name: formData.get('name') as string,
     description: (formData.get('description') as string) || null,
     quantity: Number(formData.get('quantity')),
     price: Number(formData.get('price')),
     active: formData.get('active') === 'on',
   } as never)
+  if (error) return { error: 'Erro ao criar pacote. Tente novamente.' }
   revalidatePath('/admin/cardapio')
   revalidatePath('/')
 }

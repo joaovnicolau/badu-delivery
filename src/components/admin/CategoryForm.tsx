@@ -12,12 +12,15 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 
-export function CategoryForm({ action }: { action: (formData: FormData) => Promise<void> }) {
+type ActionResult = { error: string } | undefined
+
+export function CategoryForm({ action }: { action: (formData: FormData) => Promise<ActionResult> }) {
   const formRef = useRef<HTMLFormElement>(null)
   const [open, setOpen] = useState(false)
+  const [formError, setFormError] = useState('')
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setFormError('') }}>
       <DialogTrigger asChild>
         <Button size="sm">+ Nova categoria</Button>
       </DialogTrigger>
@@ -28,12 +31,20 @@ export function CategoryForm({ action }: { action: (formData: FormData) => Promi
         <form
           ref={formRef}
           action={async (fd) => {
-            await action(fd)
+            setFormError('')
+            const result = await action(fd)
+            if (result?.error) {
+              setFormError(result.error)
+              return
+            }
             formRef.current?.reset()
             setOpen(false)
           }}
           className="space-y-4"
         >
+          {formError && (
+            <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{formError}</p>
+          )}
           <div className="space-y-2">
             <Label htmlFor="cat-name">Nome</Label>
             <Input id="cat-name" name="name" required placeholder="Ex: Fit, Tradicional" />

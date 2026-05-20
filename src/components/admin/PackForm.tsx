@@ -7,18 +7,21 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
 
+type ActionResult = { error: string } | undefined
+
 export function PackForm({
   action,
   unit,
 }: {
-  action: (formData: FormData) => Promise<void>
+  action: (formData: FormData) => Promise<ActionResult>
   unit: string
 }) {
   const formRef = useRef<HTMLFormElement>(null)
   const [open, setOpen] = useState(false)
+  const [formError, setFormError] = useState('')
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) setFormError('') }}>
       <DialogTrigger asChild>
         <Button size="sm">+ Novo pacote</Button>
       </DialogTrigger>
@@ -29,12 +32,20 @@ export function PackForm({
         <form
           ref={formRef}
           action={async (fd) => {
-            await action(fd)
+            setFormError('')
+            const result = await action(fd)
+            if (result?.error) {
+              setFormError(result.error)
+              return
+            }
             formRef.current?.reset()
             setOpen(false)
           }}
           className="space-y-4"
         >
+          {formError && (
+            <p className="text-sm text-red-600 bg-red-50 p-3 rounded-md">{formError}</p>
+          )}
           <div className="space-y-2">
             <Label htmlFor="pack-name">Nome</Label>
             <Input
