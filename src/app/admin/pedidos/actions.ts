@@ -3,6 +3,7 @@
 import { createClient, createServiceClient, requireAdmin } from '@/lib/supabase/server'
 import { revalidatePath } from 'next/cache'
 import { sendWhatsApp, renderTemplate } from '@/lib/evolution'
+import { geocodeAddress } from '@/lib/nominatim'
 
 type ActionResult = { error: string } | undefined
 
@@ -59,13 +60,10 @@ async function notifyCustomer(
   await sendWhatsApp(profile.phone, message)
 }
 
-// ---- Actions ----
-
 export async function acceptOrder(orderId: string): Promise<ActionResult> {
   await requireAdmin()
   const supabase = await createClient()
 
-  // Atualização atômica: só avança se status for 'pending'
   const { data: order } = await supabase
     .from('orders')
     .update({
@@ -74,16 +72,36 @@ export async function acceptOrder(orderId: string): Promise<ActionResult> {
     } as never)
     .eq('id', orderId)
     .eq('status', 'pending')
-    .select('id, customer_id, type')
+    .select('id, customer_id, type, delivery_lat, delivery_address')
     .single() as unknown as {
-      data: { id: string; customer_id: string; type: string } | null
+      data: {
+        id: string
+        customer_id: string
+        type: string
+        delivery_lat: number | null
+        delivery_address: string | null
+      } | null
     }
 
   if (!order) return { error: 'Pedido não encontrado ou já foi processado.' }
 
+  // Última tentativa de geocodificação se ainda sem coordenadas
+  if (!order.delivery_lat && order.delivery_address) {
+    const coords = await geocodeAddress(order.delivery_address)
+    if (coords) {
+      await supabase
+        .from('orders')
+        .update({ delivery_lat: coords.lat, delivery_lng: coords.lng } as never)
+        .eq('id', orderId)
+    } else {
+      console.warn('Geocodificação falhou no aceite do pedido', orderId, order.delivery_address)
+    }
+  }
+
   notifyCustomer(order.customer_id, orderId, 'accepted', supabase).catch(console.error)
 
   revalidatePath('/admin/pedidos')
+  revalidatePath('/admin/mapa')
 }
 
 export async function rejectOrder(orderId: string): Promise<ActionResult> {
