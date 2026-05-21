@@ -106,12 +106,15 @@ export async function rejectOrder(orderId: string): Promise<ActionResult> {
   if (order.type === 'fresh_credit') {
     const serviceClient = await createServiceClient()
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (serviceClient.rpc as any)('rpc_add_credit', {
+    const { error: creditError } = await (serviceClient.rpc as any)('rpc_add_credit', {
       p_customer_id: order.customer_id,
       p_amount: 1,
       p_reason: 'order_refund',
       p_reference_id: orderId,
     })
+    if (creditError) {
+      console.error('Falha ao estornar crédito para pedido', orderId, creditError)
+    }
   }
 
   notifyCustomer(order.customer_id, orderId, 'rejected', supabase).catch(console.error)
@@ -166,8 +169,7 @@ export async function saveWhatsAppTemplate(
   const supabase = await createClient()
   const { error } = await supabase
     .from('whatsapp_templates')
-    .update({ message } as never)
-    .eq('trigger', trigger)
+    .upsert({ trigger, message } as never, { onConflict: 'trigger' })
 
   if (error) return { error: 'Erro ao salvar template.' }
   revalidatePath('/admin/configuracoes')

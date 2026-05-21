@@ -55,9 +55,10 @@ export function OrderRow({ order }: { order: OrderFull }) {
       await printLabel('Bematech MP-4200 TH', labelData)
       await updatePrintStatus(order.id, 'printed')
     } catch {
-      await updatePrintStatus(order.id, 'failed')
+      await updatePrintStatus(order.id, 'failed').catch(() => {})
+    } finally {
+      setLoading(null)
     }
-    setLoading(null)
   }
 
   async function handleReject() {
@@ -90,8 +91,10 @@ export function OrderRow({ order }: { order: OrderFull }) {
       await updatePrintStatus(order.id, 'printed')
     } catch {
       setError('QZ Tray não está aberto ou impressora não encontrada.')
+      await updatePrintStatus(order.id, 'failed').catch(() => {})
+    } finally {
+      setLoading(null)
     }
-    setLoading(null)
   }
 
   return (

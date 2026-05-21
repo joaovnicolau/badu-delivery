@@ -55,7 +55,9 @@ export function OrdersRealtime({ initialOrders }: { initialOrders: OrderFull[] }
             .single() as unknown as { data: OrderFull | null }
 
           if (data) {
-            setOrders(prev => [data, ...prev])
+            setOrders(prev =>
+              prev.some(o => o.id === data.id) ? prev : [data, ...prev]
+            )
           }
         }
       )
