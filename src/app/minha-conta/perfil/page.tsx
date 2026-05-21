@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
 import { revalidatePath } from 'next/cache'
+import { geocodeAddress } from '@/lib/nominatim'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -20,6 +21,16 @@ async function updateProfile(formData: FormData): Promise<void> {
   const city = formData.get('city') as string || null
   const address = [street, number, neighborhood, city].filter(Boolean).join(', ') || null
 
+  let lat: number | null = null
+  let lng: number | null = null
+  if (address) {
+    const coords = await geocodeAddress(address)
+    if (coords) {
+      lat = coords.lat
+      lng = coords.lng
+    }
+  }
+
   await supabase
     .from('profiles')
     .update({
@@ -32,6 +43,8 @@ async function updateProfile(formData: FormData): Promise<void> {
       neighborhood,
       city,
       zip: formData.get('zip') as string || null,
+      lat,
+      lng,
     } as never)
     .eq('id', user.id)
 
