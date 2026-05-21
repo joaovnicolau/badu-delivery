@@ -33,10 +33,11 @@ export async function completeReminder(
 ): Promise<void> {
   await requireAdmin()
   const supabase = await createClient()
-  await supabase
+  const { error } = await supabase
     .from('reminders')
     .update({ done: true } as never)
     .eq('id', reminderId)
+  if (error) console.error('Falha ao concluir lembrete', reminderId, error)
 
   revalidatePath(`/admin/clientes/${customerId}`)
   revalidatePath('/admin')
