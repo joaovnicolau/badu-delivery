@@ -6,6 +6,7 @@ const navItems = [
   { href: '/admin/pedidos', label: 'Pedidos' },
   { href: '/admin/clientes', label: 'Clientes' },
   { href: '/admin/mapa', label: 'Mapa' },
+  { href: '/admin/relatorios', label: 'Relatórios' },
   { href: '/admin/configuracoes', label: 'Configurações' },
 ]
 
