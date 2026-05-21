@@ -4,6 +4,7 @@ import { geocodeAddress } from '@/lib/nominatim'
 describe('geocodeAddress', () => {
   beforeEach(() => {
     vi.restoreAllMocks()
+    vi.unstubAllGlobals()
   })
 
   it('retorna lat/lng para endereço válido', async () => {

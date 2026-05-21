@@ -3,7 +3,7 @@ export async function geocodeAddress(
 ): Promise<{ lat: number; lng: number } | null> {
   try {
     const encoded = encodeURIComponent(address)
-    const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1`
+    const url = `https://nominatim.openstreetmap.org/search?q=${encoded}&format=json&limit=1&countrycodes=br`
     const response = await fetch(url, {
       headers: { 'User-Agent': 'badu-delivery/1.0' },
     })
@@ -11,12 +11,13 @@ export async function geocodeAddress(
       console.error('Nominatim HTTP error:', response.status)
       return null
     }
-    const results: Array<{ lat: string; lon: string }> = await response.json()
-    if (!results.length) return null
-    return {
-      lat: parseFloat(results[0].lat),
-      lng: parseFloat(results[0].lon),
-    }
+    const results: unknown = await response.json()
+    if (!Array.isArray(results) || !results.length) return null
+    const first = results[0] as { lat?: string; lon?: string }
+    const lat = parseFloat(first.lat ?? '')
+    const lng = parseFloat(first.lon ?? '')
+    if (isNaN(lat) || isNaN(lng)) return null
+    return { lat, lng }
   } catch (err) {
     console.error('Nominatim unreachable:', err)
     return null
