@@ -10,14 +10,22 @@ export function parsePeriod(
   const [year, month] = spToday.split('-')
   const defaultDe = `${year}-${month}-01`
 
-  const deStr = de ?? defaultDe
-  const ateStr = ate ?? spToday
+  const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/
+  const deStr = (de && ISO_DATE.test(de)) ? de : defaultDe
+  const ateStr = (ate && ISO_DATE.test(ate)) ? ate : spToday
+
+  const deDate = new Date(`${deStr}T00:00:00-03:00`)
+  const ateDate = new Date(`${ateStr}T23:59:59.999-03:00`)
+
+  // Fall back to defaults if the date is invalid (e.g. 2026-13-99 passes the regex but fails Date parsing)
+  const safeDe = isNaN(deDate.getTime()) ? new Date(`${defaultDe}T00:00:00-03:00`) : deDate
+  const safeAte = isNaN(ateDate.getTime()) ? new Date(`${spToday}T23:59:59.999-03:00`) : ateDate
 
   return {
-    de: deStr,
-    ate: ateStr,
-    deDate: new Date(`${deStr}T00:00:00-03:00`),
-    ateDate: new Date(`${ateStr}T23:59:59.999-03:00`),
+    de: isNaN(deDate.getTime()) ? defaultDe : deStr,
+    ate: isNaN(ateDate.getTime()) ? spToday : ateStr,
+    deDate: safeDe,
+    ateDate: safeAte,
   }
 }
 

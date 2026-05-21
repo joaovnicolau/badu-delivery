@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { completeReminder } from './clientes/actions'
 import { Button } from '@/components/ui/button'
+import { formatBRTime, formatBRDateTime } from '@/lib/utils'
 
 type Reminder = {
   id: string
@@ -66,10 +67,7 @@ export default async function AdminDashboardPage() {
                   </p>
                   <p className="text-sm text-gray-600 mt-1">{reminder.note}</p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {new Date(reminder.remind_at).toLocaleTimeString('pt-BR', {
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {formatBRTime(reminder.remind_at)}
                   </p>
                 </div>
                 <form
@@ -102,12 +100,7 @@ export default async function AdminDashboardPage() {
                   {reminder.profiles?.name ?? 'Cliente'}
                 </span>
                 <span className="text-gray-400">
-                  {new Date(reminder.remind_at).toLocaleDateString('pt-BR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {formatBRDateTime(reminder.remind_at)}
                 </span>
               </div>
             ))}

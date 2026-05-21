@@ -121,7 +121,7 @@ export default async function RelatoriosPage({
   // ---- Créditos ----
   const creditsUsed = txAll
     .filter(t => t.reason === 'order_deduction')
-    .reduce((s, t) => s + t.amount, 0)
+    .reduce((s, t) => s + Math.abs(t.amount), 0)
   const totalBalance = (allCredits ?? []).reduce((s, c) => s + c.balance, 0)
 
   // ---- Ranking de clientes (query sequencial após saber os IDs) ----
@@ -135,7 +135,7 @@ export default async function RelatoriosPage({
   }
   const customerCreditsUsed = new Map<string, number>()
   for (const t of txAll.filter(t => t.reason === 'order_deduction')) {
-    customerCreditsUsed.set(t.customer_id, (customerCreditsUsed.get(t.customer_id) ?? 0) + t.amount)
+    customerCreditsUsed.set(t.customer_id, (customerCreditsUsed.get(t.customer_id) ?? 0) + Math.abs(t.amount))
   }
 
   const allCustomerIds = Array.from(

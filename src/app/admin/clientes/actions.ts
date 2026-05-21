@@ -17,9 +17,12 @@ export async function createReminder(
   if (!remindAt) return { error: 'A data/hora é obrigatória.' }
 
   const supabase = await createClient()
+  // datetime-local input gives "YYYY-MM-DDTHH:MM" without timezone.
+  // Append SP offset so Postgres stores the correct UTC equivalent.
+  const remindAtSP = remindAt.length === 16 ? `${remindAt}:00-03:00` : remindAt
   const { error } = await supabase
     .from('reminders')
-    .insert({ customer_id: customerId, note, remind_at: remindAt } as never)
+    .insert({ customer_id: customerId, note, remind_at: remindAtSP } as never)
 
   if (error) return { error: 'Erro ao criar lembrete.' }
 

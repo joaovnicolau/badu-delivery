@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import Link from 'next/link'
+import { formatBRDate } from '@/lib/utils'
 
 type CustomerRow = {
   id: string
@@ -70,9 +71,7 @@ export default async function ClientesPage() {
                   </td>
                   <td className="px-4 py-3 text-right text-gray-600">{stats?.count ?? 0}</td>
                   <td className="px-4 py-3 text-right text-gray-400">
-                    {stats?.lastOrder
-                      ? new Date(stats.lastOrder).toLocaleDateString('pt-BR')
-                      : '—'}
+                    {stats?.lastOrder ? formatBRDate(stats.lastOrder) : '—'}
                   </td>
                 </tr>
               )

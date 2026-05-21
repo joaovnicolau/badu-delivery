@@ -52,6 +52,7 @@ async function notifyCustomer(
     nome: profile.name,
     itens: itemNames,
     horario: new Date().toLocaleTimeString('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
       hour: '2-digit',
       minute: '2-digit',
     }),
@@ -99,7 +100,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResult> {
     }
   }
 
-  notifyCustomer(order.customer_id, orderId, 'accepted', supabase).catch(console.error)
+  await notifyCustomer(order.customer_id, orderId, 'accepted', supabase).catch(console.error)
 
   revalidatePath('/admin/pedidos')
   revalidatePath('/admin/mapa')
@@ -136,7 +137,7 @@ export async function rejectOrder(orderId: string): Promise<ActionResult> {
     }
   }
 
-  notifyCustomer(order.customer_id, orderId, 'rejected', supabase).catch(console.error)
+  await notifyCustomer(order.customer_id, orderId, 'rejected', supabase).catch(console.error)
 
   revalidatePath('/admin/pedidos')
 }
@@ -160,7 +161,7 @@ export async function dispatchOrder(orderId: string): Promise<ActionResult> {
 
   if (!order) return { error: 'Pedido não está no status aceito.' }
 
-  notifyCustomer(order.customer_id, orderId, 'dispatched', supabase).catch(console.error)
+  await notifyCustomer(order.customer_id, orderId, 'dispatched', supabase).catch(console.error)
 
   revalidatePath('/admin/pedidos')
 }

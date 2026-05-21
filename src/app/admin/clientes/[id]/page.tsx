@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import { createReminder, completeReminder } from '../actions'
 import { Button } from '@/components/ui/button'
-import { formatCurrency } from '@/lib/utils'
+import { formatCurrency, formatBRDate, formatBRTime, formatBRDateTime } from '@/lib/utils'
 
 const ORDER_TYPE_LABEL: Record<string, string> = {
   single: 'Avulso',
@@ -128,10 +128,7 @@ export default async function ClienteDetailPage({
                   )}
                   <div className="flex justify-between mt-1 text-gray-400">
                     <span>
-                      {new Date(order.created_at).toLocaleTimeString('pt-BR', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                      {formatBRTime(order.created_at)}
                     </span>
                     {order.total > 0 && <span>{formatCurrency(order.total)}</span>}
                   </div>
@@ -169,7 +166,7 @@ export default async function ClienteDetailPage({
                   <div className="text-right shrink-0">
                     <p className="text-gray-600">{ORDER_STATUS_LABEL[order.status]}</p>
                     <p className="text-xs text-gray-400">
-                      {new Date(order.created_at).toLocaleDateString('pt-BR')}
+                      {formatBRDate(order.created_at)}
                     </p>
                     {order.total > 0 && (
                       <p className="text-xs font-medium">{formatCurrency(order.total)}</p>
@@ -204,13 +201,7 @@ export default async function ClienteDetailPage({
                     {reminder.note}
                   </p>
                   <p className="text-xs text-gray-400 mt-1">
-                    {new Date(reminder.remind_at).toLocaleDateString('pt-BR', {
-                      day: '2-digit',
-                      month: '2-digit',
-                      year: 'numeric',
-                      hour: '2-digit',
-                      minute: '2-digit',
-                    })}
+                    {formatBRDateTime(reminder.remind_at)}
                   </p>
                 </div>
                 {!reminder.done && (
