@@ -22,6 +22,11 @@ export async function POST(request: NextRequest) {
 
   const { type, itemId } = body
 
+  const validTypes: PurchaseType[] = ['fresh_credit_pack', 'frozen_pack', 'single']
+  if (!validTypes.includes(type)) {
+    return NextResponse.json({ error: 'invalid_type' }, { status: 400 })
+  }
+
   const { data: profile } = await supabase
     .from('profiles')
     .select('name, cpf')
@@ -31,6 +36,9 @@ export async function POST(request: NextRequest) {
   if (!profile?.cpf) {
     return NextResponse.json({ error: 'cpf_required' }, { status: 400 })
   }
+
+  // Normalizar CPF: remover formatação antes de enviar ao Pagar.me
+  const cpfNormalized = profile.cpf.replace(/\D/g, '')
 
   let amountInCents = 0
   let code = `BADU-${Date.now()}`
@@ -128,7 +136,7 @@ export async function POST(request: NextRequest) {
       customer: {
         name: profile.name,
         email: user.email!,
-        cpf: profile.cpf,
+        cpf: cpfNormalized,
       },
       expiresInSeconds: 1800,
       metadata: { payment_id: payment.id },
