@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import { createPixCharge } from '@/lib/pagarme'
+import { geocodeAddress } from '@/lib/nominatim'
 import { NextRequest, NextResponse } from 'next/server'
 
 type PurchaseType = 'fresh_credit_pack' | 'frozen_pack' | 'single'
@@ -37,7 +38,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'cpf_required' }, { status: 400 })
   }
 
-  // Normalizar CPF: remover formatação antes de enviar ao Pagar.me
   const cpfNormalized = profile.cpf.replace(/\D/g, '')
 
   let amountInCents = 0
@@ -90,6 +90,20 @@ export async function POST(request: NextRequest) {
       .eq('id', user.id)
       .single() as unknown as { data: ProfileAddr | null }
 
+    let deliveryLat = profileAddr?.lat ?? null
+    let deliveryLng = profileAddr?.lng ?? null
+    if (profileAddr?.address && (!deliveryLat || !deliveryLng)) {
+      const coords = await geocodeAddress(profileAddr.address)
+      if (coords) {
+        deliveryLat = coords.lat
+        deliveryLng = coords.lng
+        await supabase
+          .from('profiles')
+          .update({ lat: coords.lat, lng: coords.lng } as never)
+          .eq('id', user.id)
+      }
+    }
+
     const { data: order } = await supabase
       .from('orders')
       .insert({
@@ -98,8 +112,8 @@ export async function POST(request: NextRequest) {
         status: 'pending',
         total: product.price,
         delivery_address: profileAddr?.address ?? null,
-        delivery_lat: profileAddr?.lat ?? null,
-        delivery_lng: profileAddr?.lng ?? null,
+        delivery_lat: deliveryLat,
+        delivery_lng: deliveryLng,
       } as never)
       .select('id')
       .single() as unknown as { data: { id: string } | null }

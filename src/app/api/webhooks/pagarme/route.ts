@@ -1,5 +1,6 @@
 import { createServiceClient } from '@/lib/supabase/server'
 import { verifyWebhookSignature } from '@/lib/pagarme'
+import { geocodeAddress } from '@/lib/nominatim'
 import { NextRequest, NextResponse } from 'next/server'
 
 export const dynamic = 'force-dynamic'
@@ -49,8 +50,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, unknown: true })
   }
 
-  // Idempotência atômica: só avança se conseguir marcar como 'paid' atomicamente.
-  // Se dois webhooks chegarem ao mesmo tempo, apenas um terá rowCount > 0.
   const { data: claimed } = await supabase
     .from('payments')
     .update({ status: 'paid' } as never)
@@ -60,7 +59,6 @@ export async function POST(request: NextRequest) {
     .single() as unknown as { data: { id: string } | null }
 
   if (!claimed) {
-    // Já foi processado por outra requisição concorrente
     return NextResponse.json({ ok: true, idempotent: true })
   }
 
@@ -87,7 +85,23 @@ export async function POST(request: NextRequest) {
       .from('profiles')
       .select('address, lat, lng')
       .eq('id', payment.customer_id)
-      .single() as unknown as { data: { address: string | null; lat: number | null; lng: number | null } | null }
+      .single() as unknown as {
+        data: { address: string | null; lat: number | null; lng: number | null } | null
+      }
+
+    let deliveryLat = profile?.lat ?? null
+    let deliveryLng = profile?.lng ?? null
+    if (profile?.address && (!deliveryLat || !deliveryLng)) {
+      const coords = await geocodeAddress(profile.address)
+      if (coords) {
+        deliveryLat = coords.lat
+        deliveryLng = coords.lng
+        await supabase
+          .from('profiles')
+          .update({ lat: coords.lat, lng: coords.lng } as never)
+          .eq('id', payment.customer_id)
+      }
+    }
 
     const { data: order } = await supabase
       .from('orders')
@@ -97,8 +111,8 @@ export async function POST(request: NextRequest) {
         status: 'pending',
         total: payment.amount,
         delivery_address: profile?.address ?? null,
-        delivery_lat: profile?.lat ?? null,
-        delivery_lng: profile?.lng ?? null,
+        delivery_lat: deliveryLat,
+        delivery_lng: deliveryLng,
       } as never)
       .select('id')
       .single() as unknown as { data: { id: string } | null }
