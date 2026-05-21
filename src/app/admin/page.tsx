@@ -13,10 +13,10 @@ type Reminder = {
 export default async function AdminDashboardPage() {
   const supabase = await createClient()
 
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
-  const todayEnd = new Date()
-  todayEnd.setHours(23, 59, 59, 999)
+  // Compute "today" in Sao Paulo timezone (America/Sao_Paulo)
+  const spDate = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo' }).format(new Date())
+  const todayStart = new Date(`${spDate}T00:00:00-03:00`)
+  const todayEnd = new Date(`${spDate}T23:59:59.999-03:00`)
 
   const [{ data: todayReminders }, { data: upcomingReminders }] = await Promise.all([
     supabase

@@ -72,13 +72,14 @@ export async function acceptOrder(orderId: string): Promise<ActionResult> {
     } as never)
     .eq('id', orderId)
     .eq('status', 'pending')
-    .select('id, customer_id, type, delivery_lat, delivery_address')
+    .select('id, customer_id, type, delivery_lat, delivery_lng, delivery_address')
     .single() as unknown as {
       data: {
         id: string
         customer_id: string
         type: string
         delivery_lat: number | null
+        delivery_lng: number | null
         delivery_address: string | null
       } | null
     }
@@ -86,7 +87,7 @@ export async function acceptOrder(orderId: string): Promise<ActionResult> {
   if (!order) return { error: 'Pedido não encontrado ou já foi processado.' }
 
   // Última tentativa de geocodificação se ainda sem coordenadas
-  if (!order.delivery_lat && order.delivery_address) {
+  if ((!order.delivery_lat || !order.delivery_lng) && order.delivery_address) {
     const coords = await geocodeAddress(order.delivery_address)
     if (coords) {
       await supabase

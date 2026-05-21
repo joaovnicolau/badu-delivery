@@ -140,6 +140,9 @@ export async function POST(request: NextRequest) {
     .single() as unknown as { data: { id: string } | null }
 
   if (!payment) {
+    if (paymentInsert.order_id) {
+      await supabase.from('orders').delete().eq('id', paymentInsert.order_id as string)
+    }
     return NextResponse.json({ error: 'payment_creation_failed' }, { status: 500 })
   }
 

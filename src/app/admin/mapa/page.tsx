@@ -16,8 +16,9 @@ export type MapOrderPin = {
 export default async function MapaPage() {
   const supabase = await createClient()
 
-  const todayStart = new Date()
-  todayStart.setHours(0, 0, 0, 0)
+  // Compute start of today in Sao Paulo timezone
+  const spDate = new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo' }).format(new Date())
+  const todayStart = new Date(`${spDate}T00:00:00-03:00`)
 
   const { data: orders } = await supabase
     .from('orders')
