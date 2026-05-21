@@ -49,14 +49,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true, unknown: true })
   }
 
-  if (payment.status === 'paid') {
-    return NextResponse.json({ ok: true, idempotent: true })
-  }
-
-  await supabase
+  // Idempotência atômica: só avança se conseguir marcar como 'paid' atomicamente.
+  // Se dois webhooks chegarem ao mesmo tempo, apenas um terá rowCount > 0.
+  const { data: claimed } = await supabase
     .from('payments')
     .update({ status: 'paid' } as never)
     .eq('id', payment.id)
+    .eq('status', 'pending')
+    .select('id')
+    .single() as unknown as { data: { id: string } | null }
+
+  if (!claimed) {
+    // Já foi processado por outra requisição concorrente
+    return NextResponse.json({ ok: true, idempotent: true })
+  }
 
   if (payment.fresh_credit_pack_id) {
     const { data: pack } = await supabase
