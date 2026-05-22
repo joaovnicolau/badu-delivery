@@ -13,7 +13,7 @@ export default async function PublicLayout({ children }: { children: React.React
       .from('profiles')
       .select('street')
       .eq('id', user.id)
-      .single()
+      .single() as unknown as { data: { street: string | null } | null }
     showAddressModal = !profile?.street
   }
 
