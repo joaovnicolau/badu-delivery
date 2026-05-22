@@ -21,7 +21,6 @@ function CadastroForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const [emailSent, setEmailSent] = useState(false)
 
   async function handleCadastro(e: React.FormEvent) {
     e.preventDefault()
@@ -49,29 +48,7 @@ function CadastroForm() {
       return
     }
 
-    setEmailSent(true)
-    setLoading(false)
-  }
-
-  if (emailSent) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-        <Card className="w-full max-w-sm text-center">
-          <CardHeader>
-            <CardTitle>Verifique seu e-mail</CardTitle>
-            <CardDescription>
-              Enviamos um link de confirmação para <strong>{email}</strong>.
-              Clique no link para ativar sua conta.
-            </CardDescription>
-          </CardHeader>
-          <CardFooter className="justify-center">
-            <Link href="/login" className="text-sm text-orange-600 underline">
-              Voltar para o login
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
-    )
+    router.push(redirectTo)
   }
 
   return (
