@@ -94,7 +94,7 @@ function CheckoutContent() {
 
       if (!res.ok) {
         if (data.error === 'cpf_required') setError('Cadastre seu CPF no perfil antes de pagar com Pix.')
-        else if (data.error === 'unauthorized') router.push('/login?redirect=/checkout?' + searchParams.toString())
+        else if (data.error === 'unauthorized') router.push('/login?redirect=' + encodeURIComponent('/checkout?' + searchParams.toString()))
         else setError(data.error ?? 'Erro ao criar pagamento. Tente novamente.')
         return
       }

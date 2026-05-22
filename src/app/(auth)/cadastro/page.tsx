@@ -1,22 +1,27 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card'
+import { Suspense } from 'react'
 
-export default function CadastroPage() {
+function CadastroForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = searchParams.get('redirect') ?? '/minha-conta'
+
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [emailSent, setEmailSent] = useState(false)
 
   async function handleCadastro(e: React.FormEvent) {
     e.preventDefault()
@@ -35,6 +40,7 @@ export default function CadastroPage() {
       password,
       options: {
         data: { name, phone },
+        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(redirectTo)}`,
       },
     })
 
@@ -44,8 +50,29 @@ export default function CadastroPage() {
       return
     }
 
-    router.push('/')
-    router.refresh()
+    setEmailSent(true)
+    setLoading(false)
+  }
+
+  if (emailSent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
+        <Card className="w-full max-w-sm text-center">
+          <CardHeader>
+            <CardTitle>Verifique seu e-mail</CardTitle>
+            <CardDescription>
+              Enviamos um link de confirmação para <strong>{email}</strong>.
+              Clique no link para ativar sua conta.
+            </CardDescription>
+          </CardHeader>
+          <CardFooter className="justify-center">
+            <Link href="/login" className="text-sm text-orange-600 underline">
+              Voltar para o login
+            </Link>
+          </CardFooter>
+        </Card>
+      </div>
+    )
   }
 
   return (
@@ -82,7 +109,7 @@ export default function CadastroPage() {
               {loading ? 'Criando conta...' : 'Criar conta'}
             </Button>
             <p className="text-sm text-center text-muted-foreground">
-              Já tem conta?{' '}
+              Ja tem conta?{' '}
               <Link href="/login" className="underline hover:text-foreground">
                 Entrar
               </Link>
@@ -91,5 +118,13 @@ export default function CadastroPage() {
         </form>
       </Card>
     </div>
+  )
+}
+
+export default function CadastroPage() {
+  return (
+    <Suspense>
+      <CadastroForm />
+    </Suspense>
   )
 }

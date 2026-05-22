@@ -13,7 +13,11 @@ async function updateProfile(formData: FormData): Promise<void> {
   if (!user) return
 
   const cpf = (formData.get('cpf') as string ?? '').replace(/\D/g, '')
-  if (cpf && cpf.length !== 11) return
+  if (cpf && cpf.length !== 11) {
+    // CPF inválido — retorno silencioso, o formulário não fornece feedback aqui
+    // por limitação do Server Action void. Validação visual deve ser feita no cliente.
+    return
+  }
 
   const street = formData.get('street') as string || null
   const number = formData.get('number') as string || null
@@ -31,7 +35,7 @@ async function updateProfile(formData: FormData): Promise<void> {
     }
   }
 
-  await supabase
+  const { error: updateError } = await supabase
     .from('profiles')
     .update({
       name: formData.get('name') as string,
@@ -47,6 +51,10 @@ async function updateProfile(formData: FormData): Promise<void> {
       lng,
     } as never)
     .eq('id', user.id)
+
+  if (updateError) {
+    console.error('Erro ao atualizar perfil:', updateError)
+  }
 
   revalidatePath('/minha-conta/perfil')
 }
