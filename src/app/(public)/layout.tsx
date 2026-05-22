@@ -1,10 +1,21 @@
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/button'
+import { AddressModal } from '@/components/address-modal'
 
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
+
+  let showAddressModal = false
+  if (user) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('street')
+      .eq('id', user.id)
+      .single()
+    showAddressModal = !profile?.street
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -32,6 +43,7 @@ export default async function PublicLayout({ children }: { children: React.React
         </div>
       </header>
       <main className="max-w-5xl mx-auto px-4 py-8">{children}</main>
+      {showAddressModal && <AddressModal defaultOpen={true} />}
     </div>
   )
 }

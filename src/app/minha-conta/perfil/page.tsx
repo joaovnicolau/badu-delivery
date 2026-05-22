@@ -1,10 +1,10 @@
 import { createClient } from '@/lib/supabase/server'
 import { redirect } from 'next/navigation'
-import { revalidatePath } from 'next/cache'
 import { geocodeAddress } from '@/lib/nominatim'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { SavedBanner } from '@/components/saved-banner'
 
 async function updateProfile(formData: FormData): Promise<void> {
   'use server'
@@ -13,11 +13,7 @@ async function updateProfile(formData: FormData): Promise<void> {
   if (!user) return
 
   const cpf = (formData.get('cpf') as string ?? '').replace(/\D/g, '')
-  if (cpf && cpf.length !== 11) {
-    // CPF inválido — retorno silencioso, o formulário não fornece feedback aqui
-    // por limitação do Server Action void. Validação visual deve ser feita no cliente.
-    return
-  }
+  if (cpf && cpf.length !== 11) return
 
   const street = formData.get('street') as string || null
   const number = formData.get('number') as string || null
@@ -54,9 +50,10 @@ async function updateProfile(formData: FormData): Promise<void> {
 
   if (updateError) {
     console.error('Erro ao atualizar perfil:', updateError)
+    return
   }
 
-  revalidatePath('/minha-conta/perfil')
+  redirect('/minha-conta/perfil?saved=1')
 }
 
 type Profile = {
@@ -65,7 +62,7 @@ type Profile = {
   city: string | null; zip: string | null
 }
 
-export default async function PerfilPage() {
+export default async function PerfilPage({ searchParams }: { searchParams: { saved?: string } }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login?redirect=/minha-conta/perfil')
@@ -76,9 +73,12 @@ export default async function PerfilPage() {
     .eq('id', user.id)
     .single() as unknown as { data: Profile | null }
 
+  const saved = searchParams?.saved === '1'
+
   return (
     <div className="max-w-lg">
       <h1 className="text-2xl font-bold text-gray-900 mb-6">Meu Perfil</h1>
+      {saved && <SavedBanner redirectTo="/minha-conta/perfil" />}
       <form action={updateProfile} className="space-y-5 bg-white rounded-xl border p-6">
         <div className="space-y-2">
           <Label htmlFor="name">Nome completo</Label>
