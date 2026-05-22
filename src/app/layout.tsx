@@ -2,6 +2,11 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 
+// Forçar rendering dinâmico em todo o app para que process.env seja lido
+// em runtime, não em build time. Necessário pois Build Args do EasyPanel
+// não são repassados corretamente ao Docker como --build-arg.
+export const dynamic = 'force-dynamic'
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
