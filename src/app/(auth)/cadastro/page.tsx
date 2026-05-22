@@ -40,7 +40,6 @@ function CadastroForm() {
       password,
       options: {
         data: { name, phone },
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${encodeURIComponent(redirectTo)}`,
       },
     })
 

@@ -18,5 +18,9 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
     ''
 
+  if (typeof window !== 'undefined' && (!url || !key)) {
+    console.error('[Supabase] URL ou Key ausente!', { url: url ? 'ok' : 'VAZIO', key: key ? 'ok' : 'VAZIO' })
+  }
+
   return createBrowserClient<Database>(url, key)
 }
