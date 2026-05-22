@@ -1,9 +1,22 @@
 import { createBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 
+declare global {
+  interface Window {
+    __SUPABASE_URL__?: string
+    __SUPABASE_ANON_KEY__?: string
+  }
+}
+
 export function createClient() {
-  return createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const url =
+    (typeof window !== 'undefined' ? window.__SUPABASE_URL__ : undefined) ??
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??
+    ''
+  const key =
+    (typeof window !== 'undefined' ? window.__SUPABASE_ANON_KEY__ : undefined) ??
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??
+    ''
+
+  return createBrowserClient<Database>(url, key)
 }
