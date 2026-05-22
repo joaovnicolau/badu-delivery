@@ -26,6 +26,13 @@ FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 
+# Receber e definir as variáveis públicas do Supabase no container final
+# (NEXT_PUBLIC_* são públicas por natureza — seguro baked na imagem)
+ARG NEXT_PUBLIC_SUPABASE_URL
+ARG NEXT_PUBLIC_SUPABASE_ANON_KEY
+ENV NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+ENV NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
